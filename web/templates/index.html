@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Minesweeper</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 40px;
+            background-image: url("{{ url_for('static', filename='background.jpg') }}");
+            background-size: 1200px;
+            background-repeat: no-repeat;
+            background-position: center top;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        .message {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        table {
+            margin: 0 auto;
+            border-collapse: collapse;
+            border-radius: 6px;
+        }
+
+        td {
+            width: 56px;
+            height: 56px;
+            border: 1px solid #444;
+            text-align: center;
+            vertical-align: middle;
+            font-size: 24px;
+            background: #eeb7b7;
+            padding: 0;
+        }
+
+        td.revealed {
+            background: #f5f5f5;
+        }
+
+        td.hidden {
+            background: #83b2fa;
+            border-top: 3px solid white;
+            border-left: 3px solid white;
+            border-bottom: 3px solid #808080;
+            border-right: 3px solid #808080;
+        }
+
+        a.cell-link {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: inherit;
+            user-select: none;
+        }
+
+        .actions {
+            margin-top: 20px;
+        }
+
+        .restart-btn {
+            display: inline-block;
+            padding: 10px 18px;
+            background: #96c4e9;
+            color: rgb(0, 0, 0);
+            text-decoration: none;
+            border-radius: 6px;
+        }
+
+        .help {
+            margin-top: 16px;
+            color: #000000;
+            font-size: 14px;
+        }
+
+        .number-1 { color: blue; }
+
+        .number-2 { color: green; }
+
+        .number-3 { color: red; }
+
+        .number-4 { color: navy; }
+
+        .number-5 { color: brown; }
+
+        .number-6 { color: turquoise; }
+
+        .number-7 { color: black; }
+
+        .number-8 { color: gray; }
+    </style>
+</head>
+<body>
+    <h1>Minesweeper</h1>
+    <audio autoplay loop>
+        <source src="{{ url_for('static', filename='ipanema.mp3') }}" type="audio/mpeg">
+    </audio>
+    {% if message %}
+        <div class="message">{{ message }}</div>
+    {% endif %}
+
+    <table>
+        {% for row in range(board|length) %}
+            <tr>
+                {% for col in range(board[row]|length) %}
+                    {% set cell = board[row][col] %}
+                    {% set is_hidden = (cell == " ") %}
+                    <td
+                         class="{{ 'hidden' if cell == ' ' else 'revealed number-' ~ cell }}"
+                        oncontextmenu="flagCell(event, {{ row }}, {{ col }})"
+                    >
+                        {% if not game_over and not is_winner %}
+                            <a class="cell-link" href="{{ url_for('reveal', row=row, col=col) }}">
+                              {{ cell }}
+                            </a>
+                        {% else %}
+                            <div class="cell-link">
+                              {{ cell }}
+                            </div>
+                        {% endif %}
+                    </td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+
+    <div class="actions">
+        <a class="restart-btn" href="{{ url_for('restart') }}">New game</a>
+    </div>
+
+    <div class="help">
+        Left click = reveal · Right click = mark / unmark
+    </div>
+
+    <script>
+        function flagCell(event, row, col) {
+            event.preventDefault();
+
+            const gameFinished =
+                {{ 'true' if game_over or is_winner else 'false' }};
+
+            if (gameFinished) {
+                return;
+            }
+
+            window.location.href = `/flag/${row}/${col}`;
+        }
+        const music = document.getElementById("bg-music");
+
+        window.addEventListener("load", () => {
+            music.muted = false;
+            music.volume = 0.2;
+        });
+    </script>
+</body>
+</html>
